@@ -176,53 +176,56 @@
 	};
 
 	onMount(async () => {
-		if ($user?.role === 'admin') {
-			const res = await getConfig(localStorage.token).catch((error) => {
-				toast.error(`${error}`);
-				return null;
-			});
+	    if ($user?.role === 'admin') {
+    	    const res = await getConfig(localStorage.token).catch((error) => {
+        	    toast.error(`${error}`);
+            	return null;
+        	});
 
-			if (res) {
-				config = res;
-			}
+	        if (res) {
+	            config = {
+	                ...res,
+	                fooocus: res.fooocus || { FOOOCUS_API_HOST: '' } // Ensure fooocus is initialized
+	            };
+	        }
 
-			if (config.enabled) {
-				getModels();
-			}
+	        if (config.enabled) {
+	            getModels();
+	        }
 
-			if (config.comfyui.COMFYUI_WORKFLOW) {
-				try {
-					config.comfyui.COMFYUI_WORKFLOW = JSON.stringify(
-						JSON.parse(config.comfyui.COMFYUI_WORKFLOW),
-						null,
-						2
-					);
-				} catch (e) {
-					console.log(e);
-				}
-			}
+	        if (config.comfyui.COMFYUI_WORKFLOW) {
+	            try {
+	                config.comfyui.COMFYUI_WORKFLOW = JSON.stringify(
+	                    JSON.parse(config.comfyui.COMFYUI_WORKFLOW),
+	                    null,
+	                    2
+	                );
+	            } catch (e) {
+	                console.log(e);
+	            }
+	        }
 
-			requiredWorkflowNodes = requiredWorkflowNodes.map((node) => {
-				const n = config.comfyui.COMFYUI_WORKFLOW_NODES.find((n) => n.type === node.type) ?? node;
+	        requiredWorkflowNodes = requiredWorkflowNodes.map((node) => {
+	            const n = config.comfyui.COMFYUI_WORKFLOW_NODES.find((n) => n.type === node.type) ?? node;
 
-				console.log(n);
+	            console.log(n);
 
-				return {
-					type: n.type,
-					key: n.key,
-					node_ids: typeof n.node_ids === 'string' ? n.node_ids : n.node_ids.join(',')
-				};
-			});
+	            return {
+	                type: n.type,
+	                key: n.key,
+	                node_ids: typeof n.node_ids === 'string' ? n.node_ids : n.node_ids.join(',')
+	            };
+	        });
 
-			const imageConfigRes = await getImageGenerationConfig(localStorage.token).catch((error) => {
-				toast.error(`${error}`);
-				return null;
-			});
+	        const imageConfigRes = await getImageGenerationConfig(localStorage.token).catch((error) => {
+	            toast.error(`${error}`);
+	            return null;
+	        });
 
-			if (imageConfigRes) {
-				imageGenerationConfig = imageConfigRes;
-			}
-		}
+	        if (imageConfigRes) {
+	            imageGenerationConfig = imageConfigRes;
+	        }
+	    }
 	});
 </script>
 
@@ -268,7 +271,10 @@
 										} else if (config.engine === 'gemini' && config.gemini.GEMINI_API_KEY === '') {
 											toast.error($i18n.t('Gemini API Key is required.'));
 											config.enabled = false;
-										}
+										} else if (config.engine === 'fooocus' && config.fooocus.FOOOCUS_API_HOST === '') {
+            							    toast.error($i18n.t('Fooocus API Host is required.'));
+            							    config.enabled = false;
+            							}
 									}
 
 									updateConfigHandler();
@@ -302,6 +308,7 @@
 							<option value="comfyui">{$i18n.t('ComfyUI')}</option>
 							<option value="automatic1111">{$i18n.t('Automatic1111')}</option>
 							<option value="gemini">{$i18n.t('Gemini')}</option>
+							<option value="fooocus">{$i18n.t('Fooocus')}</option>
 						</select>
 					</div>
 				</div>
@@ -631,6 +638,47 @@
 							/>
 						</div>
 					</div>
+					{:else if config?.engine === 'fooocus'}
+					<div>
+						<div class=" mb-2 text-sm font-medium">{$i18n.t('Fooocus API Host')}</div>
+						<div class="flex w-full">
+							<div class="flex-1 mr-2">
+								<input
+									class="w-full rounded-lg py-2 px-4 text-sm bg-gray-50 dark:text-gray-300 dark:bg-gray-850 outline-hidden"
+									placeholder={$i18n.t('Enter URL (e.g. http://127.0.0.1:7865/)')}
+									bind:value={config.fooocus.FOOOCUS_API_HOST}
+								/>
+							</div>
+							<button
+								class="px-2.5 bg-gray-50 hover:bg-gray-100 text-gray-800 dark:bg-gray-850 dark:hover:bg-gray-800 dark:text-gray-100 rounded-lg transition"
+								type="button"
+								on:click={async () => {
+									await updateConfigHandler();
+									const res = await verifyConfigUrl(localStorage.token).catch((error) => {
+										toast.error(`${error}`);
+										return null;
+									});
+				
+									if (res) {
+										toast.success($i18n.t('Server connection verified'));
+									}
+								}}
+							>
+								<svg
+									xmlns="http://www.w3.org/2000/svg"
+									viewBox="0 0 20 20"
+									fill="currentColor"
+									class="w-4 h-4"
+								>
+									<path
+										fill-rule="evenodd"
+										d="M15.312 11.424a5.5 5.5 0 01-9.201 2.466l-.312-.311h2.433a.75.75 0 000-1.5H3.989a.75.75 0 00-.75.75v4.242a.75.75 0 001.5 0v-2.43l.31.31a7 7 0 0011.712-3.138.75.75 0 00-1.449-.39zm1.23-3.723a.75.75 0 00.219-.53V2.929a.75.75 0 00-1.5 0V5.36l-.31-.31A7 7 0 003.239 8.188a.75.75 0 101.448.389A5.5 5.5 0 0113.89 6.11l.311.31h-2.432a.75.75 0 000 1.5h4.243a.75.75 0 00.53-.219z"
+										clip-rule="evenodd"
+									/>
+								</svg>
+							</button>
+						</div>
+					</div>	
 				{/if}
 			</div>
 
