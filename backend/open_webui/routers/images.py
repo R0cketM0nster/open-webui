@@ -159,6 +159,9 @@ async def update_config(
         form_data.comfyui.COMFYUI_WORKFLOW_NODES
     )
 
+    request.app.state.config.FOOOCUS_API_HOST.value = form_data.fooocus.FOOOCUS_API_HOST
+    request.app.state.config.FOOOCUS_API_HOST.save()
+
     return {
         "enabled": request.app.state.config.ENABLE_IMAGE_GENERATION,
         "engine": request.app.state.config.IMAGE_GENERATION_ENGINE,
@@ -183,6 +186,9 @@ async def update_config(
         "gemini": {
             "GEMINI_API_BASE_URL": request.app.state.config.IMAGES_GEMINI_API_BASE_URL,
             "GEMINI_API_KEY": request.app.state.config.IMAGES_GEMINI_API_KEY,
+        },
+        "fooocus": {
+            "FOOOCUS_API_HOST": request.app.state.config.FOOOCUS_API_HOST.value,
         },
     }
 
