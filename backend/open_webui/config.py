@@ -2473,8 +2473,10 @@ IMAGES_GEMINI_API_KEY = PersistentConfig(
     os.getenv("IMAGES_GEMINI_API_KEY", GEMINI_API_KEY),
 )
 
-FOOOCUS_API_HOST = os.getenv(
-    "FOOOCUS_API_HOST", "http://127.0.0.1:7865"
+FOOOCUS_API_HOST = PersistentConfig(
+    "FOOOCUS_API_HOST",
+    "image_generation.fooocus.api_host",
+    os.getenv("FOOOCUS_API_HOST", "http://127.0.0.1:7865"),
 )
 
 IMAGE_SIZE = PersistentConfig(
