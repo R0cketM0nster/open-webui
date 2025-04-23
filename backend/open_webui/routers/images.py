@@ -219,18 +219,25 @@ async def verify_url(request: Request, user=Depends(get_admin_user)):
             request.app.state.config.ENABLE_IMAGE_GENERATION = False
             raise HTTPException(status_code=400, detail=ERROR_MESSAGES.INVALID_URL)
     elif request.app.state.config.IMAGE_GENERATION_ENGINE == "comfyui":
-
+        
         headers = None
         if request.app.state.config.COMFYUI_API_KEY:
             headers = {
                 "Authorization": f"Bearer {request.app.state.config.COMFYUI_API_KEY}"
             }
-
         try:
             r = requests.get(
                 url=f"{request.app.state.config.COMFYUI_BASE_URL}/object_info",
                 headers=headers,
             )
+            r.raise_for_status()
+            return True
+        except Exception:
+            request.app.state.config.ENABLE_IMAGE_GENERATION = False
+            raise HTTPException(status_code=400, detail=ERROR_MESSAGES.INVALID_URL)
+    elif request.app.state.config.IMAGE_GENERATION_ENGINE == "fooocus":
+        try:
+            r = requests.get(url=f"{request.app.state.config.FOOOCUS_API_HOST.value}")
             r.raise_for_status()
             return True
         except Exception:
