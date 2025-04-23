@@ -688,6 +688,32 @@ async def image_generations(
                 )
                 images.append({"url": url})
             return images
+        elif request.app.state.config.IMAGE_GENERATION_ENGINE == "fooocus":
+            if form_data.model:
+                set_image_model(request, form_data.model)
+            uri = request.app.state.config.FOOOCUS_API_HOST.value.replace("http://", "ws://").replace("https://", "wss://") + "/ws"
+            async with websockets.connect(uri) as websocket:
+                payload = {
+                    "prompt": form_data.prompt,
+                    "negative_prompt": form_data.negative_prompt or "",
+                    "width": width,
+                    "height": height,
+                    "steps": request.app.state.config.IMAGE_STEPS or 30,
+                    "cfg_scale": 7.0,
+                    "seed": -1,
+                    "n": form_data.n,
+                }
+                await websocket.send(json.dumps(payload))
+                response = await websocket.recv()
+                res = json.loads(response)
+                if "error" in res:
+                    raise HTTPException(status_code=500, detail=res["error"])
+                images = []
+                for image_b64 in res.get("images", []):
+                    image_data, content_type = load_b64_image_data(image_b64)
+                    url = upload_image(request, payload, image_data, content_type, user)
+                    images.append({"url": url})
+                return images
     except Exception as e:
         error = e
         if r != None:
