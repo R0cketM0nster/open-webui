@@ -22,6 +22,9 @@ from open_webui.utils.images.comfyui import (
 )
 from pydantic import BaseModel
 
+from open_webui.config import FOOOCUS_API_HOST
+import websockets
+
 log = logging.getLogger(__name__)
 log.setLevel(SRC_LOG_LEVELS["IMAGES"])
 
@@ -86,6 +89,8 @@ class GeminiConfigForm(BaseModel):
     GEMINI_API_BASE_URL: str
     GEMINI_API_KEY: str
 
+class FooocusConfigForm(BaseModel):
+    FOOOCUS_API_HOST: str
 
 class ConfigForm(BaseModel):
     enabled: bool
@@ -95,7 +100,7 @@ class ConfigForm(BaseModel):
     automatic1111: Automatic1111ConfigForm
     comfyui: ComfyUIConfigForm
     gemini: GeminiConfigForm
-
+    fooocus: FooocusConfigForm 
 
 @router.post("/config/update")
 async def update_config(
