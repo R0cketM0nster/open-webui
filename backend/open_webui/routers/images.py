@@ -423,10 +423,12 @@ def get_models(request: Request, user=Depends(get_verified_user)):
                     models,
                 )
             )
+        elif request.app.state.config.IMAGE_GENERATION_ENGINE == "fooocus":
+            return [{"id": "default", "name": "Fooocus Default"}]  # Fooocus doesn't expose a model list
     except Exception as e:
         request.app.state.config.ENABLE_IMAGE_GENERATION = False
         raise HTTPException(status_code=400, detail=ERROR_MESSAGES.DEFAULT(e))
-
+    
 
 class GenerateImageForm(BaseModel):
     model: Optional[str] = None
