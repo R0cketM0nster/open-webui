@@ -63,7 +63,7 @@ async def get_config(request: Request, user=Depends(get_admin_user)):
             "GEMINI_API_KEY": request.app.state.config.IMAGES_GEMINI_API_KEY,
         },
         "fooocus": {
-            "FOOOCUS_API_HOST": request.app.state.config.FOOOCUS_API_HOST.value,
+            "FOOOCUS_API_HOST": request.app.state.config.FOOOCUS_API_HOST.value or "",
         },
     }
 
@@ -188,7 +188,7 @@ async def update_config(
             "GEMINI_API_KEY": request.app.state.config.IMAGES_GEMINI_API_KEY,
         },
         "fooocus": {
-            "FOOOCUS_API_HOST": request.app.state.config.FOOOCUS_API_HOST.value,
+            "FOOOCUS_API_HOST": request.app.state.config.FOOOCUS_API_HOST.value or "",
         },
     }
 
